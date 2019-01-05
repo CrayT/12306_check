@@ -23,6 +23,7 @@ class TrainCollection(object):
         table = {
             'red': '\033[91m',
             'green': '\033[92m',
+            'yellow': '\033[93m',
             # no color
             'nc': '\033[0m'
         }
@@ -36,7 +37,7 @@ class TrainCollection(object):
             # print(row)
             train = [
                 # 车次
-                row['station_train_code'],
+                self.colored('yellow',row['station_train_code']),
 
                 # 出发、到达站
                 '\n'.join([self.colored('green', row['from_station_name']),
@@ -96,8 +97,6 @@ class TrainCollection(object):
         pt._set_field_names(self.header)
         
         for train in self.trains:
-            pt.add_row(train)
             pt.horizontal_char='-'
+            pt.add_row(train)
         print(pt)
-
-
