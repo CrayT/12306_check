@@ -21,7 +21,7 @@ from docopt import docopt
 from TrainCollection import TrainCollection
 import requests
 import re
-
+from wx import *
 def cli():
     url = 'https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=1.8955'
     r = requests.get(url, verify=False)
@@ -122,6 +122,7 @@ def cli():
 
 if __name__ == '__main__':
     cli()
+
 
 '''
 商务 P
