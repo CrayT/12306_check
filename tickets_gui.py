@@ -23,6 +23,8 @@ import requests
 import re
 from wx import *
 import wx.grid 
+# from wx import adv
+import wx.adv 
 def cli(from_station, to_station, date):
     url = 'https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=1.8955'
     r = requests.get(url, verify=False)
@@ -141,7 +143,7 @@ class MyFrame(Frame):
         self.row=0
         self.col=0
         self.button1=Button(panel,-1,"登陆",pos=(410,20),size=(100,20))
-        self.button2=Button(panel,-1,"查询",pos=(850,240),size=(100,20))
+        self.button2=Button(panel,-1,"查询",pos=(850,380),size=(100,20))
 
         StaticText(panel,-1,"用户名:",pos=(20,20))
         text_input1=TextCtrl(panel,-1,pos=(70,20),size=(120,20))
@@ -160,12 +162,17 @@ class MyFrame(Frame):
         self.__TextBox4=text_input4
         
         StaticText(panel,-1,"日期:",pos=(830,160))
-        text_input5=TextCtrl(panel,-1,pos=(870,160),size=(100,20))
-        self.__TextBox5=text_input5
+        self.datepick = wx.adv.CalendarCtrl(panel,-1,pos=(800,180))
+        
+        # text_input5=TextCtrl(panel,-1,pos=(870,160),size=(100,20))
+        # self.__TextBox5=text_input5
 
-        StaticText(panel,-1,"出发时间:",pos=(810,200))
-        text_input6=TextCtrl(panel,-1,pos=(870,200),size=(100,20))
+
+        StaticText(panel,-1,"出发时间:",pos=(810,330))
+        text_input6=TextCtrl(panel,-1,pos=(870,330),size=(100,20))
         self.__TextBox6=text_input6
+
+        
         
         self.button2.Bind(EVT_BUTTON,self.run_file)
 
@@ -174,8 +181,8 @@ class MyFrame(Frame):
         self.InitUI() 
 
     def run_file(self,event): 
-
-        dic=cli(self.__TextBox3.GetValue(), self.__TextBox4.GetValue(), self.__TextBox5.GetValue())    #调用识别文件函数
+        date=str(self.datepick.PyGetDate())[:10]
+        dic=cli(self.__TextBox3.GetValue(), self.__TextBox4.GetValue(), date)    #调用识别文件函数
         
         dic_tmp=[]
         for j in range(len(dic)):
