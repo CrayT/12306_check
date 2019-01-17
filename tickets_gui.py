@@ -183,7 +183,7 @@ class MyFrame(Frame):
                 dic_tmp.append(dic[j])
             else:
                 pass
-        #dicc=[]
+
         if len(dic_tmp) != 0:
             dic=dic_tmp
         else:
