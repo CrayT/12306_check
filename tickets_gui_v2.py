@@ -19,11 +19,14 @@ Example:
 """
 from docopt import docopt
 from TrainCollection import TrainCollection
+from urllib3 import disable_warnings
+from urllib3.exceptions import InsecureRequestWarning
 import requests
 import re
 from wx import *
 import wx.grid 
 import wx.adv 
+disable_warnings(InsecureRequestWarning) 
 def cli(from_station, to_station, date):
     url = 'https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=1.8955'
     r = requests.get(url, verify=False)
@@ -44,10 +47,8 @@ def cli(from_station, to_station, date):
     l=[]
 
     for row in rows:
-
         listt=[]
         listt=row.split('|')
-
         if "列车停运" in listt:
             pass
         else:
@@ -117,6 +118,34 @@ def cli(from_station, to_station, date):
 
     return l
 
+session=requests.Session()            #定义session，保持一个会话，验证码post和用户post保持同一个会话，之后的下单跨域保持登录
+session.verify=False 
+locate={
+    "1":"44,44,",
+    '2':'114,44,',
+    '3':'185,44,',
+    '4':'254,44,',
+    '5':'44,124,',
+    '6':'114,124,',
+    '7':'185,124,',
+    '8':'254,124,'
+    }
+head={
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.146 Safari/537.36', 
+    'Referer': 'https://kyfw.12306.cn/otn/login/init'
+    }
+
+def login_getPic():
+    resp1 = session.get('https://kyfw.12306.cn/passport/captcha/captcha-image?login_site=E&module=login&rand=sjrand&',headers=head)
+    with open('code.png','wb') as f:
+        f.write(resp1.content)
+    
+
+def login():
+    pass 
+
+
+
 def getItem(lis):
         listt=[]
         key=['station_train_code','from_station_name','to_station_name','start_time','arrive_time','time','sw_num','ydz_num','edz_num','rw_num','yw_num','rz_num','yz_num','wz_num']
@@ -130,52 +159,77 @@ def getItem(lis):
                 else:
                     listt.append(lis[key[i]])
         return listt
+
+# 重置Image对象尺寸的函数
+def resizeBitmap(image, width=200, height=200):
+    bmp = image.Scale(width, height).ConvertToBitmap()
+    return bmp
+
 class MyFrame(Frame):
+    
     def __init__(self):
         Frame.__init__(self,None,-1,title="火车票查询",pos=(100,100),size=(1000,600))
-        panel=Panel(self,-1)
+        self.panel=Panel(self,-1)
+ 
+        login_getPic() #拿到验证图片
 
-        self.grid = wx.grid.Grid(panel, -1,pos=(20,70),size=(780,600),style=WANTS_CHARS)
+        self.grid = wx.grid.Grid(self.panel, -1,pos=(20,70),size=(780,600),style=WANTS_CHARS)
         
         self.grid.AutoSizeColumns()
         self.row=0
         self.col=0
-        self.button1=Button(panel,-1,"登陆",pos=(410,20),size=(100,20))
-        self.button2=Button(panel,-1,"查询",pos=(850,380),size=(100,20))
+        self.button1=Button(self.panel,-1,"登陆",pos=(680,60),size=(100,20))
+        self.button2=Button(self.panel,-1,"查询",pos=(850,380),size=(100,20))
+        self.button3=Button(self.panel,-1,"刷新验证码",pos=(250,60),size=(100,20))
 
-        StaticText(panel,-1,"用户名:",pos=(20,20))
-        text_input1=TextCtrl(panel,-1,pos=(70,20),size=(120,20))
+        StaticText(self.panel,-1,"用户名:",pos=(20,20))
+        text_input1=TextCtrl(self.panel,-1,pos=(70,20),size=(120,20))
         self.__TextBox1=text_input1
 
-        StaticText(panel,-1,"密码:",pos=(200,20))
-        text_input2=TextCtrl(panel,-1,pos=(240,20),size=(120,20))
+        StaticText(self.panel,-1,"密码:",pos=(200,20))
+        text_input2=TextCtrl(self.panel,-1,pos=(240,20),size=(120,20))
         self.__TextBox2=text_input2
 
-        StaticText(panel,-1,"出发:",pos=(830,80))
-        text_input3=TextCtrl(panel,-1,pos=(870,80),size=(100,20))
+        StaticText(self.panel,-1,"出发:",pos=(830,80))
+        text_input3=TextCtrl(self.panel,-1,pos=(870,80),size=(100,20))
         self.__TextBox3=text_input3
         
-        StaticText(panel,-1,"到达:",pos=(830,120))
-        text_input4=TextCtrl(panel,-1,pos=(870,120),size=(100,20))
+        StaticText(self.panel,-1,"到达:",pos=(830,120))
+        text_input4=TextCtrl(self.panel,-1,pos=(870,120),size=(100,20))
         self.__TextBox4=text_input4
         
-        StaticText(panel,-1,"日期:",pos=(830,160))
-        self.datepick = wx.adv.CalendarCtrl(panel,-1,pos=(800,180))
+        StaticText(self.panel,-1,"日期:",pos=(830,160))
+        self.datepick = wx.adv.CalendarCtrl(self.panel,-1,pos=(800,180))
 
-        StaticText(panel,-1,"出发时间:",pos=(810,330))
-        text_input6=TextCtrl(panel,-1,pos=(870,330),size=(100,20))
+        StaticText(self.panel,-1,"出发时间:",pos=(810,330))
+        text_input6=TextCtrl(self.panel,-1,pos=(870,330),size=(100,20))
         self.__TextBox6=text_input6
 
         self.button2.Bind(EVT_BUTTON,self.run_file)
 
-        StaticText(panel,-1,"Version: 2.0",pos=(900,530))
-        StaticText(panel,-1,"By: Xu.T",pos=(900,550))
+        self.button3.Bind(EVT_BUTTON,self.fresh_pic) #刷新验证码
+
+        StaticText(self.panel,-1,"Version: 2.0",pos=(900,530))
+        StaticText(self.panel,-1,"By: Xu.T",pos=(900,550))
+
+        img_big = wx.Image("code.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(370, 0))
+        img_big = wx.Image("code.png", wx.BITMAP_TYPE_ANY) #显示验证图片
+        staticBmp.SetBitmap(resizeBitmap(img_big, 200, 100))
+        
         self.InitUI() 
 
+    def fresh_pic(self,event):
+        self.Refresh()  #刷新验证码需要刷新窗口来显示新图片。
+        login_getPic() #重新得到验证图片。
+        img_big = wx.Image("code.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(370, 0))
+        img_big = wx.Image("code.png", wx.BITMAP_TYPE_ANY) #显示验证图片
+        staticBmp.SetBitmap(resizeBitmap(img_big, 200, 100))
+
     def run_file(self,event): 
-        date=str(self.datepick.PyGetDate())[:10]  #拿到日历的日期
-        dic=cli(self.__TextBox3.GetValue(), self.__TextBox4.GetValue(), date)    #调用识别文件函数
-        
+        date = str(self.datepick.PyGetDate())[:10]  #拿到日历的日期
+        dic = cli(self.__TextBox3.GetValue(), self.__TextBox4.GetValue(), date)    #调用识别文件函数
         dic_tmp=[]
         for j in range(len(dic)):
             if self.__TextBox6.GetValue() and ( int(dic[j]['start_time'].split(':')[0]) >= int(self.__TextBox6.GetValue()) ) : 
