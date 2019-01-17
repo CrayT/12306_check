@@ -32,7 +32,6 @@ def cli(from_station, to_station, date):
     r = requests.get(url, verify=False)
     stations = re.findall(r'([\u4e00-\u9fa5]+)\|([A-Z]+)', r.text)
     station = dict(stations)
-
     from_station = station.get(from_station)
     to_station = station.get(to_station)
     date = date
@@ -40,15 +39,13 @@ def cli(from_station, to_station, date):
     url = 'https://kyfw.12306.cn/otn/leftTicket/queryZ?leftTicketDTO.train_date={}&leftTicketDTO.from_station={}&leftTicketDTO.to_station={}&purpose_codes=ADULT'.format(
         date, from_station, to_station
     )
-
     r = requests.get(url, verify=False)
     rows = r.json()['data']['result']
-    mapp=r.json()['data']['map']
-    l=[]
-
+    mapp = r.json()['data']['map']
+    l = []
     for row in rows:
-        listt=[]
-        listt=row.split('|')
+        listt = []
+        listt = row.split('|')
         if "列车停运" in listt:
             pass
         else:
@@ -113,14 +110,11 @@ def cli(from_station, to_station, date):
             
             
             l.append(rw)
-    # trains = TrainCollection(l)
-    # trains.pretty_print()
-
     return l
 
-session=requests.Session()            #定义session，保持一个会话，验证码post和用户post保持同一个会话，之后的下单跨域保持登录
+session = requests.Session()            #定义session，保持一个会话，验证码post和用户post保持同一个会话，之后的下单跨域保持登录
 session.verify=False 
-locate={
+locate = {
     "1":"44,44,",
     '2':'114,44,',
     '3':'185,44,',
@@ -130,7 +124,7 @@ locate={
     '7':'185,124,',
     '8':'254,124,'
     }
-head={
+head = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.146 Safari/537.36', 
     'Referer': 'https://kyfw.12306.cn/otn/login/init'
     }
@@ -139,12 +133,9 @@ def login_getPic():
     resp1 = session.get('https://kyfw.12306.cn/passport/captcha/captcha-image?login_site=E&module=login&rand=sjrand&',headers=head)
     with open('code.png','wb') as f:
         f.write(resp1.content)
-    
 
 def login():
     pass 
-
-
 
 def getItem(lis):
         listt=[]
@@ -176,34 +167,34 @@ class MyFrame(Frame):
         self.grid = wx.grid.Grid(self.panel, -1,pos=(20,70),size=(780,600),style=WANTS_CHARS)
         
         self.grid.AutoSizeColumns()
-        self.row=0
-        self.col=0
-        self.button1=Button(self.panel,-1,"登陆",pos=(680,60),size=(100,20))
-        self.button2=Button(self.panel,-1,"查询",pos=(850,380),size=(100,20))
-        self.button3=Button(self.panel,-1,"刷新验证码",pos=(250,60),size=(100,20))
+        self.row = 0
+        self.col = 0
+        self.button1 = Button(self.panel,-1,"登陆",pos=(680,60),size=(100,20))
+        self.button2 = Button(self.panel,-1,"查询",pos=(850,380),size=(100,20))
+        self.button3 = Button(self.panel,-1,"刷新验证码",pos=(250,60),size=(100,20))
 
         StaticText(self.panel,-1,"用户名:",pos=(20,20))
-        text_input1=TextCtrl(self.panel,-1,pos=(70,20),size=(120,20))
-        self.__TextBox1=text_input1
+        text_input1 = TextCtrl(self.panel,-1,pos=(70,20),size=(120,20))
+        self.__TextBox1 = text_input1
 
         StaticText(self.panel,-1,"密码:",pos=(200,20))
-        text_input2=TextCtrl(self.panel,-1,pos=(240,20),size=(120,20))
+        text_input2 = TextCtrl(self.panel,-1,pos=(240,20),size=(120,20))
         self.__TextBox2=text_input2
 
         StaticText(self.panel,-1,"出发:",pos=(830,80))
-        text_input3=TextCtrl(self.panel,-1,pos=(870,80),size=(100,20))
-        self.__TextBox3=text_input3
+        text_input3 = TextCtrl(self.panel,-1,pos=(870,80),size=(100,20))
+        self.__TextBox3 = text_input3
         
         StaticText(self.panel,-1,"到达:",pos=(830,120))
-        text_input4=TextCtrl(self.panel,-1,pos=(870,120),size=(100,20))
-        self.__TextBox4=text_input4
+        text_input4 = TextCtrl(self.panel,-1,pos=(870,120),size=(100,20))
+        self.__TextBox4 = text_input4
         
         StaticText(self.panel,-1,"日期:",pos=(830,160))
         self.datepick = wx.adv.CalendarCtrl(self.panel,-1,pos=(800,180))
 
         StaticText(self.panel,-1,"出发时间:",pos=(810,330))
-        text_input6=TextCtrl(self.panel,-1,pos=(870,330),size=(100,20))
-        self.__TextBox6=text_input6
+        text_input6 = TextCtrl(self.panel,-1,pos=(870,330),size=(100,20))
+        self.__TextBox6 = text_input6
 
         self.button2.Bind(EVT_BUTTON,self.run_file)
 
@@ -230,18 +221,16 @@ class MyFrame(Frame):
     def run_file(self,event): 
         date = str(self.datepick.PyGetDate())[:10]  #拿到日历的日期
         dic = cli(self.__TextBox3.GetValue(), self.__TextBox4.GetValue(), date)    #调用识别文件函数
-        dic_tmp=[]
+        dic_tmp = []
         for j in range(len(dic)):
             if self.__TextBox6.GetValue() and ( int(dic[j]['start_time'].split(':')[0]) >= int(self.__TextBox6.GetValue()) ) : 
                 dic_tmp.append(dic[j])
             else:
                 pass
-
         if len(dic_tmp) != 0:
-            dic=dic_tmp
+            dic = dic_tmp
         else:
-            dic=dic
-
+            dic = dic
         if self.row ==0 : #grid尚未被创建
             self.grid.CreateGrid(len(dic), 14)
         else: #grid已经创建，需要删除row或增加row
@@ -249,19 +238,16 @@ class MyFrame(Frame):
                 self.grid.DeleteRows(pos=len(dic), numRows=self.row-len(dic)) #删除多余的row
             else:
                 self.grid.InsertRows(pos=self.row, numRows=len(dic)-self.row)
-
         self.grid.SetRowLabelSize(23)  #列表签宽度
-
-        ll=['车次', '出发站','到达站', '出发时','到达时', '历时', '商务', '一等座', '二等座',  '软卧',  '硬卧', '软座', '硬座', '无座']
+        ll = ['车次', '出发站','到达站', '出发时','到达时', '历时', '商务', '一等座', '二等座',  '软卧',  '硬卧', '软座', '硬座', '无座']
         for i in range(len(ll)):
-            if i ==0:
+            if i == 0:
                 self.grid.SetColSize(i, 60)
             elif i > 2:
                 self.grid.SetColSize(i, 47)
             self.grid.SetColLabelValue(i,ll[i])
             self.grid.SetCellAlignment(0, i, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
         self.grid.EnableDragColSize(enable=True) #可以拖动列宽
-        
         for j in range(len(dic)):
             list1 = getItem(dic[j])
             for i in range(len(list1)):
@@ -270,10 +256,9 @@ class MyFrame(Frame):
                 if j%2 == 0:
                     self.grid.SetCellBackgroundColour(j, i, "light blue")
                 else:
-                    pass
-                
-        self.col=self.grid.GetNumberCols()
-        self.row=self.grid.GetNumberRows()
+                    pass 
+        self.col = self.grid.GetNumberCols()
+        self.row = self.grid.GetNumberRows()
 
     def InitUI(self):    #自定义的函数,完成菜单的设置  
         menubar = MenuBar()        #生成菜单栏  
@@ -282,7 +267,6 @@ class MyFrame(Frame):
         qmi2 = MenuItem(filemenu,2, "Quit")  #quit项，id设为2，在bind中调用
         filemenu.AppendItem(qmi1)            #把菜单项加入到菜单中  
         filemenu.AppendItem(qmi2)  
-
         menubar.Append(filemenu, "&File")        #把菜单加入到菜单栏中  
         self.SetMenuBar(menubar)            #把菜单栏加入到Frame框架中  
         self.Bind(EVT_MENU, self.OnQuit, id=2)    #给菜单项加入事件处理，id=2  
@@ -293,12 +277,10 @@ class MyFrame(Frame):
         self.Close()
 
     def help_window(self,event): #定义help窗口
-        dial=MessageDialog(None,"None",pos=(10,10)) #测试用
+        dial = MessageDialog(None,"None",pos=(10,10)) #测试用
         dial.ShowModal()
 
-
 if __name__ == "__main__":
-
     app = App()    #创建应用的对象
     myframe = MyFrame()    #创建一个自定义出来的窗口
     myframe.Show()    #这两句一定要在MainLoop开始之前就执行    
