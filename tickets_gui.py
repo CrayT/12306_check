@@ -141,7 +141,7 @@ class MyFrame(Frame):
         self.row=0
         self.col=0
         self.button1=Button(panel,-1,"登陆",pos=(410,20),size=(100,20))
-        self.button2=Button(panel,-1,"查询",pos=(850,200),size=(100,20))
+        self.button2=Button(panel,-1,"查询",pos=(850,240),size=(100,20))
 
         StaticText(panel,-1,"用户名:",pos=(20,20))
         text_input1=TextCtrl(panel,-1,pos=(70,20),size=(120,20))
@@ -162,26 +162,40 @@ class MyFrame(Frame):
         StaticText(panel,-1,"日期:",pos=(830,160))
         text_input5=TextCtrl(panel,-1,pos=(870,160),size=(100,20))
         self.__TextBox5=text_input5
-        
 
+        StaticText(panel,-1,"出发时间:",pos=(810,200))
+        text_input6=TextCtrl(panel,-1,pos=(870,200),size=(100,20))
+        self.__TextBox6=text_input6
+        
         self.button2.Bind(EVT_BUTTON,self.run_file)
 
         StaticText(panel,-1,"Version: 1.0",pos=(900,530))
         StaticText(panel,-1,"By: Xu.T",pos=(900,550))
         self.InitUI() 
-    
 
     def run_file(self,event): 
 
         dic=cli(self.__TextBox3.GetValue(), self.__TextBox4.GetValue(), self.__TextBox5.GetValue())    #调用识别文件函数
+        
+        dic_tmp=[]
+        for j in range(len(dic)):
+            if self.__TextBox6.GetValue() and ( int(dic[j]['start_time'].split(':')[0]) >= int(self.__TextBox6.GetValue()) ) : 
+                dic_tmp.append(dic[j])
+            else:
+                pass
+        #dicc=[]
+        if len(dic_tmp) != 0:
+            dic=dic_tmp
+        else:
+            dic=dic
 
         if self.row ==0 : #grid尚未被创建
             self.grid.CreateGrid(len(dic), 14)
         else: #grid已经创建，需要删除row或增加row
             if self.row >= len(dic):
-                self.grid.DeleteRows(pos=0, numRows=self.row-len(dic))
+                self.grid.DeleteRows(pos=len(dic), numRows=self.row-len(dic)) #删除多余的row
             else:
-                self.grid.InsertRows(pos=0, numRows=len(dic)-self.row)
+                self.grid.InsertRows(pos=self.row, numRows=len(dic)-self.row)
 
         self.grid.SetRowLabelSize(23)  #列表签宽度
 
@@ -192,11 +206,9 @@ class MyFrame(Frame):
             elif i > 2:
                 self.grid.SetColSize(i, 47)
             self.grid.SetColLabelValue(i,ll[i])
-
             self.grid.SetCellAlignment(0, i, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
-
         self.grid.EnableDragColSize(enable=True) #可以拖动列宽
-
+        
         for j in range(len(dic)):
             list1 = getItem(dic[j])
             for i in range(len(list1)):
@@ -204,7 +216,9 @@ class MyFrame(Frame):
                 self.grid.SetCellAlignment(j, i, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
                 if j%2 == 0:
                     self.grid.SetCellBackgroundColour(j, i, "light blue")
-
+                else:
+                    pass
+                
         self.col=self.grid.GetNumberCols()
         self.row=self.grid.GetNumberRows()
 
@@ -234,7 +248,6 @@ if __name__ == "__main__":
 
     app = App()    #创建应用的对象
     myframe = MyFrame()    #创建一个自定义出来的窗口
-    #myframe.Center()#正中间显示
     myframe.Show()    #这两句一定要在MainLoop开始之前就执行    
     app.MainLoop()
 
