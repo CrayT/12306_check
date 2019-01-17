@@ -23,7 +23,6 @@ import requests
 import re
 from wx import *
 import wx.grid 
-# from wx import adv
 import wx.adv 
 def cli(from_station, to_station, date):
     url = 'https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=1.8955'
@@ -31,7 +30,6 @@ def cli(from_station, to_station, date):
     stations = re.findall(r'([\u4e00-\u9fa5]+)\|([A-Z]+)', r.text)
     station = dict(stations)
 
-    # arg = docopt(__doc__)
     from_station = station.get(from_station)
     to_station = station.get(to_station)
     date = date
@@ -170,7 +168,7 @@ class MyFrame(Frame):
 
         self.button2.Bind(EVT_BUTTON,self.run_file)
 
-        StaticText(panel,-1,"Version: 1.0",pos=(900,530))
+        StaticText(panel,-1,"Version: 2.0",pos=(900,530))
         StaticText(panel,-1,"By: Xu.T",pos=(900,550))
         self.InitUI() 
 
@@ -251,14 +249,3 @@ if __name__ == "__main__":
     myframe = MyFrame()    #创建一个自定义出来的窗口
     myframe.Show()    #这两句一定要在MainLoop开始之前就执行    
     app.MainLoop()
-
-'''
-商务 P
-一等座 M
-二等座   WZ
-软卧  A4
-硬卧  A3
-软座 A2
-硬座  A1
-无座 A1
-'''
