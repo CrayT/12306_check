@@ -1,22 +1,5 @@
 #! /usr/bin/env python3
 #encoding:utf-8
-
-"""Train tickets query via command-line.
-
-Usage:
-    tickets [-gdtkz] <from> <to> <date>
-
-Options:
-    -h,--help   显示帮助菜单
-    -g          高铁
-    -d          动车
-    -t          特快
-    -k          快速
-    -z          直达
-
-Example:
-    tickets beijing shanghai 2016-08-25
-"""
 from docopt import docopt
 from TrainCollection import TrainCollection
 from urllib3 import disable_warnings
@@ -220,7 +203,6 @@ def resizeBitmap(image, width=200, height=200):
     return bmp
 
 class MyFrame(Frame):
-    
     def __init__(self):
         Frame.__init__(self,None,-1,title="火车票查询",pos=(100,100),size=(1050,700))
         self.panel=Panel(self,-1)
@@ -272,22 +254,18 @@ class MyFrame(Frame):
         img_big = wx.Image("./pic/3.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
         staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(20, 35))
 
-        
         self.InitUI() 
 
     def login(self,event):
         mess = login_to(self.__TextBox0.GetValue())
-        dial = MessageDialog(None,mess)
+        dial = MessageDialog(None,mess) #显示返回的登陆的信息。
         dial.ShowModal()
-        #self.fresh_pic
 
     def fresh_pic(self,event):
         self.Refresh()  #刷新验证码需要刷新窗口来显示新图片。
         login_getPic() #重新得到验证图片。
         img_big = wx.Image("./pic/new.jpg", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
         staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(130, 0))
-        # img_big = wx.Image("./pic/new.jpg", wx.BITMAP_TYPE_ANY) #显示验证图片
-        # staticBmp.SetBitmap(resizeBitmap(img_big, 200, 100))
         img_big = wx.Image("./pic/3.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
         staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(20, 35))
 

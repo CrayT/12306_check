@@ -2,13 +2,16 @@ from PIL import Image
 '293*190'
 def pic_con(path):
         img = Image.open(path+'/code.png')
-
+        
+        #目标名称部分
         croping = img.crop((0,0,293,30))
         croping.save(path+'/0.png')
 
+        #上半部图片
         croping = img.crop((0,38,293,110))
         croping.save(path+'/1.png')
 
+        #下半部图片
         croping = img.crop((0,110,293,182))
         croping.save(path+'/2.png')
 
