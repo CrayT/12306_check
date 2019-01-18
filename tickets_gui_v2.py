@@ -26,6 +26,10 @@ import re
 from wx import *
 import wx.grid 
 import wx.adv 
+from json import loads
+import json
+from configparser import ConfigParser
+from reSizePic import pic_con
 disable_warnings(InsecureRequestWarning) 
 def cli(from_station, to_station, date):
     url = 'https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=1.8955'
@@ -131,11 +135,70 @@ head = {
 
 def login_getPic():
     resp1 = session.get('https://kyfw.12306.cn/passport/captcha/captcha-image?login_site=E&module=login&rand=sjrand&',headers=head)
-    with open('code.png','wb') as f:
+    with open('./pic/code.png','wb') as f:
         f.write(resp1.content)
+    pic_con(path='./pic')
 
-def login():
-    pass 
+def login_to(code):
+    cfg = ConfigParser()
+    cfg.read('config.conf') #读取配置文件
+    username = cfg['user']['username']
+    passwd = cfg['user']['passwd']
+
+    print(code)
+    code = str(code).split(',')
+    codes = ''
+    for i in code:
+        codes += locate[i]
+    data = {
+    'answer': codes,
+    'login_site': 'E',
+    'rand': 'sjrand'
+    }
+    resp = session.post('https://kyfw.12306.cn/passport/captcha/captcha-check',headers = head,data = data)
+    print("resp \n",resp.content.decode('utf-8'))
+    html = loads(resp.content.decode('utf-8'))
+
+    if html['result_code'] == '4':
+        print('验证码校验成功！')
+
+        login_url = 'https://kyfw.12306.cn/passport/web/login'
+        user = {
+            'username': username,
+            'password': passwd,
+            'appid': 'otn'
+        }
+        resp2 = session.post(login_url,headers=head,data=user)
+        html = loads(resp2.content.decode('utf-8'))
+        print(resp2.text)
+        if html['result_code'] == 0:
+            print('登陆成功！')
+            yzdata={
+                'appid':'otn'
+            }
+            tk_url='https://kyfw.12306.cn/passport/web/auth/uamtk'
+            resp3=session.post(tk_url,data=yzdata,headers=head)
+            print('第一次验证:')
+            print(resp3.text)
+            login_message=resp3.json()['newapptk']
+            print('loginMessage=',login_message)
+            yz2data={
+                'tk':login_message
+            }
+            client_url='https://kyfw.12306.cn/otn/uamauthclient'
+            resp4=session.post(client_url,data=yz2data,headers=head)
+            print('第二次验证:')
+            print(json.loads(resp4.text))
+            mes_json=json.loads(resp4.text)
+            username=mes_json['username']
+            mes='用户: '+username+',登陆成功！'
+            return mes
+        else:
+            print('登陆失败！')
+            return '登陆失败！'
+    else:
+        print('验证码校验失败，正在重新请求页面...')
+        return "验证码校验失败"
 
 def getItem(lis):
         listt=[]
@@ -159,7 +222,7 @@ def resizeBitmap(image, width=200, height=200):
 class MyFrame(Frame):
     
     def __init__(self):
-        Frame.__init__(self,None,-1,title="火车票查询",pos=(100,100),size=(1000,600))
+        Frame.__init__(self,None,-1,title="火车票查询",pos=(100,100),size=(1050,700))
         self.panel=Panel(self,-1)
  
         login_getPic() #拿到验证图片
@@ -169,17 +232,14 @@ class MyFrame(Frame):
         self.grid.AutoSizeColumns()
         self.row = 0
         self.col = 0
-        self.button1 = Button(self.panel,-1,"登陆",pos=(680,60),size=(100,20))
+
+        self.button1 = Button(self.panel,-1,"登陆",pos=(720,60),size=(100,20))
         self.button2 = Button(self.panel,-1,"查询",pos=(850,380),size=(100,20))
-        self.button3 = Button(self.panel,-1,"刷新验证码",pos=(250,60),size=(100,20))
+        self.button3 = Button(self.panel,-1,"刷新验证码",pos=(20,10),size=(100,20))
 
-        StaticText(self.panel,-1,"用户名:",pos=(20,20))
-        text_input1 = TextCtrl(self.panel,-1,pos=(70,20),size=(120,20))
-        self.__TextBox1 = text_input1
-
-        StaticText(self.panel,-1,"密码:",pos=(200,20))
-        text_input2 = TextCtrl(self.panel,-1,pos=(240,20),size=(120,20))
-        self.__TextBox2=text_input2
+        StaticText(self.panel,-1,"验证码:",pos=(720,5))
+        text_input0 = TextCtrl(self.panel,-1,pos=(720,30),size=(120,20))
+        self.__TextBox0 = text_input0 
 
         StaticText(self.panel,-1,"出发:",pos=(830,80))
         text_input3 = TextCtrl(self.panel,-1,pos=(870,80),size=(100,20))
@@ -195,28 +255,42 @@ class MyFrame(Frame):
         StaticText(self.panel,-1,"出发时间:",pos=(810,330))
         text_input6 = TextCtrl(self.panel,-1,pos=(870,330),size=(100,20))
         self.__TextBox6 = text_input6
+        
+        self.button1.Bind(EVT_BUTTON,self.login)
 
         self.button2.Bind(EVT_BUTTON,self.run_file)
 
         self.button3.Bind(EVT_BUTTON,self.fresh_pic) #刷新验证码
 
-        StaticText(self.panel,-1,"Version: 2.0",pos=(900,530))
-        StaticText(self.panel,-1,"By: Xu.T",pos=(900,550))
+        StaticText(self.panel,-1,"Version: 2.0",pos=(900,630))
+        StaticText(self.panel,-1,"By: Xu.T",pos=(900,650))
 
-        img_big = wx.Image("code.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(370, 0))
-        img_big = wx.Image("code.png", wx.BITMAP_TYPE_ANY) #显示验证图片
-        staticBmp.SetBitmap(resizeBitmap(img_big, 200, 100))
+        img_big = wx.Image("./pic/new.jpg", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(130, 0))
+
+        #显示目标图片名称
+        img_big = wx.Image("./pic/3.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(20, 35))
+
         
         self.InitUI() 
+
+    def login(self,event):
+        mess = login_to(self.__TextBox0.GetValue())
+        dial = MessageDialog(None,mess)
+        dial.ShowModal()
+        #self.fresh_pic
 
     def fresh_pic(self,event):
         self.Refresh()  #刷新验证码需要刷新窗口来显示新图片。
         login_getPic() #重新得到验证图片。
-        img_big = wx.Image("code.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(370, 0))
-        img_big = wx.Image("code.png", wx.BITMAP_TYPE_ANY) #显示验证图片
-        staticBmp.SetBitmap(resizeBitmap(img_big, 200, 100))
+        img_big = wx.Image("./pic/new.jpg", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(130, 0))
+        # img_big = wx.Image("./pic/new.jpg", wx.BITMAP_TYPE_ANY) #显示验证图片
+        # staticBmp.SetBitmap(resizeBitmap(img_big, 200, 100))
+        img_big = wx.Image("./pic/3.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(20, 35))
+
 
     def run_file(self,event): 
         date = str(self.datepick.PyGetDate())[:10]  #拿到日历的日期
@@ -231,7 +305,7 @@ class MyFrame(Frame):
             dic = dic_tmp
         else:
             dic = dic
-        if self.row ==0 : #grid尚未被创建
+        if self.row == 0 : #grid尚未被创建
             self.grid.CreateGrid(len(dic), 14)
         else: #grid已经创建，需要删除row或增加row
             if self.row >= len(dic):
