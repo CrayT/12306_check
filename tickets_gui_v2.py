@@ -291,7 +291,6 @@ class MyFrame(Frame):
         img_big = wx.Image("./pic/3.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
         staticBmp = wx.StaticBitmap(self.panel, -1, img_big, pos=(20, 35))
 
-
     def run_file(self,event): 
         date = str(self.datepick.PyGetDate())[:10]  #拿到日历的日期
         dic = cli(self.__TextBox3.GetValue(), self.__TextBox4.GetValue(), date)    #调用识别文件函数
